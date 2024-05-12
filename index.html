@@ -1,0 +1,169 @@
+<-- Mariam Yeremyan
+Ani Khachatryan
+Arpine Gyagunts
+Maria Karapetyan
+-->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Regular Graph Generator</title>
+    <style>
+        /* Add your CSS styles here */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        header {
+            background-color: #333;
+            color: #fff;
+            padding: 20px;
+            text-align: center;
+        }
+        form {
+            margin: 20px auto;
+            text-align: center;
+        }
+        form label {
+            margin-right: 5px;
+        }
+        form input[type="number"] {
+            width: 50px;
+            text-align: center;
+            margin-right: 10px;
+        }
+        form button {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        #graphContainer {
+            margin: 20px auto;
+            text-align: center;
+        }
+        canvas {
+            border: 1px solid #ccc;
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <h1>Regular Graph Generator</h1>
+    </header>
+    <form id="graphForm">
+        <label for="a">a:</label>
+        <input type="number" id="a" min="0" required>
+        <label for="b">b:</label>
+        <input type="number" id="b" min="0" required>
+        <label for="c">c:</label>
+        <input type="number" id="c" min="0" required>
+        <button type="submit">Generate Graph</button>
+    </form>
+    <div id="graphContainer">
+        <canvas id="graphCanvas" width="400" height="400"></canvas>
+    </div>
+
+    <script>
+        // JavaScript code
+        document.getElementById('graphForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            generateGraph();
+        });
+
+        function generateGraph() {
+            // Retrieve input values
+            var a = parseInt(document.getElementById('a').value);
+            var b = parseInt(document.getElementById('b').value);
+            var c = parseInt(document.getElementById('c').value);
+
+            // Validate input
+            if (a <= b && b <= c) {
+                // Generate the graph based on input values
+                var graph = generateRegularGraph(a, b, c);
+                // Draw the graph on the canvas
+                drawGraph(graph);
+            } else {
+                alert('Invalid input: a ≤ b ≤ c');
+            }
+        }
+
+        function generateRegularGraph(a, b, c) {
+            // Initialize an empty array to store the graph vertices
+            var vertices = [];
+
+            // Create vertices with degree c
+            for (var i = 0; i < c; i++) {
+                // Calculate vertex position on a circle
+                var angle = (2 * Math.PI * i) / c;
+                var x = 200 + 150 * Math.cos(angle); // Center X + Radius * Cosine
+                var y = 200 + 150 * Math.sin(angle); // Center Y + Radius * Sine
+                vertices.push({ id: i, x: x, y: y, neighbors: [] });
+            }
+
+            // Create lateral connections (edges)
+            for (var i = 0; i < c; i++) {
+                for (var j = i + 1; j < c; j++) {
+                    if (vertices[i].neighbors.length < b && vertices[j].neighbors.length < b) {
+                        vertices[i].neighbors.push(vertices[j]);
+                        vertices[j].neighbors.push(vertices[i]);
+                    }
+                }
+            }
+
+            // Create additional vertex connections (if needed)
+            var additionalEdges = (c * (c - 1)) / 2 - b * (c - 1) / 2;
+            var addedEdges = 0;
+            for (var i = 0; i < c; i++) {
+                for (var j = i + 1; j < c; j++) {
+                    if (vertices[i].neighbors.length < a && vertices[j].neighbors.length < a && addedEdges < additionalEdges) {
+                        vertices[i].neighbors.push(vertices[j]);
+                        vertices[j].neighbors.push(vertices[i]);
+                        addedEdges++;
+                    }
+                }
+            }
+
+            // Return the generated graph
+            return vertices;
+        }
+
+        function drawGraph(graph) {
+            var canvas = document.getElementById('graphCanvas');
+            var ctx = canvas.getContext('2d');
+            var radius = 20; // Vertex radius
+
+            // Clear the canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw edges
+            graph.forEach(function(vertex) {
+                vertex.neighbors.forEach(function(neighbor) {
+                    ctx.beginPath();
+                    ctx.moveTo(vertex.x, vertex.y);
+                    ctx.lineTo(neighbor.x, neighbor.y);
+                    ctx.strokeStyle = '#000'; // Black color
+                    ctx.stroke();
+                });
+            });
+
+            // Draw vertices
+            graph.forEach(function(vertex) {
+                ctx.beginPath();
+                ctx.arc(vertex.x, vertex.y, radius, 0, 2 * Math.PI);
+                ctx.fillStyle = '#007bff'; // Blue color
+                ctx.fill();
+                ctx.strokeStyle = '#000';
+                ctx.stroke();
+                ctx.fillStyle = '#fff'; // White color for text
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(vertex.id, vertex.x, vertex.y);
+            });
+        }
+    </script>
+</body>
+</html>
